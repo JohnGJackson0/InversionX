@@ -1,18 +1,11 @@
-interface ServiceIdentifier<T> {
-  new (...args: any[]): T;
-}
-
 class Container {
-  private services = new Map<ServiceIdentifier<any>, any>();
+  private services = new Map<string, any>();
 
-  public register<T>(
-    identifier: ServiceIdentifier<T>,
-    implementation: T
-  ): void {
+  public register<T>(identifier: string, implementation: T): void {
     this.services.set(identifier, implementation);
   }
 
-  public resolve<T>(identifier: ServiceIdentifier<T>): T {
+  public resolve<T>(identifier: string): T {
     const service = this.services.get(identifier);
     if (!service) {
       throw new Error(`Service not found for identifier: ${identifier}`);
