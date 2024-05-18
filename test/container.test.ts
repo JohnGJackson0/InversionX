@@ -1,29 +1,41 @@
 import { Container } from '../src/container';
 
-class TestService {
+export class TestService {
   public getValue(): string {
     return 'Hello, Injectofy!';
   }
 }
 
-class AnotherService {
+export class AnotherService {
   public getValue(): string {
     return 'Hello, Override!';
   }
 }
 
+export interface AppServices {
+  TestService: TestService;
+  AnotherService: AnotherService;
+}
+
 describe('Container', () => {
-  let container: Container;
+  let container: Container<AppServices>;
 
   beforeEach(() => {
-    container = new Container();
+    container = new Container<AppServices>();
   });
 
-  test('should register and resolve a service using string identifier', () => {
-    container.register('TestService', new TestService());
-    const service = container.resolve<TestService>('TestService');
+  test('should register and resolve TestService', () => {
+    container.register('TestService', new TestService(), TestService);
+    const service = container.resolve('TestService');
     expect(service).toBeInstanceOf(TestService);
     expect(service.getValue()).toBe('Hello, Injectofy!');
+  });
+
+  test('should register and resolve AnotherService', () => {
+    container.register('AnotherService', new AnotherService(), AnotherService);
+    const service = container.resolve('AnotherService');
+    expect(service).toBeInstanceOf(AnotherService);
+    expect(service.getValue()).toBe('Hello, Override!');
   });
 
   test('should throw an error if the service is not registered', () => {
@@ -32,11 +44,26 @@ describe('Container', () => {
     );
   });
 
-  test('should override an existing service registration', () => {
-    container.register('TestService', new TestService());
-    container.register('TestService', new AnotherService());
+  test('should override an existing service with the same type', () => {
+    container.register('TestService', new TestService(), TestService);
+    container.register('TestService', new TestService(), TestService);
 
-    const service = container.resolve<AnotherService>('TestService');
-    expect(service.getValue()).toBe('Hello, Override!');
+    const service = container.resolve('TestService');
+    expect(service.getValue()).toBe('Hello, Injectofy!');
+  });
+
+  test('should throw an error if attempting to override with a different type', () => {
+    container.register('TestService', new TestService(), TestService);
+    expect(() =>
+      container.register('TestService', new AnotherService(), AnotherService)
+    ).toThrow(
+      'Type mismatch: TestService is already registered with a different type'
+    );
+  });
+
+  test('should throw an error if resolving an unregistered service', () => {
+    expect(() => container.resolve('AnotherService')).toThrow(
+      'Service not found for identifier: AnotherService'
+    );
   });
 });
