@@ -16,7 +16,6 @@ export interface AppServices {
   TestService: TestService;
   AnotherService: AnotherService;
 }
-
 describe('Container', () => {
   let container: Container<AppServices>;
 
@@ -65,5 +64,15 @@ describe('Container', () => {
     expect(() => container.resolve('AnotherService')).toThrow(
       'Service not found for identifier: AnotherService'
     );
+  });
+
+  test('should infer the type based on the container', () => {
+    container.register('TestService', new TestService(), TestService);
+    const service = container.resolve('TestService');
+
+    // TypeScript type assertion to ensure 'service' is of type TestService
+    const inferredType: TestService = service;
+    expect(inferredType).toBeInstanceOf(TestService);
+    expect(inferredType.getValue()).toBe('Hello, Injectofy!');
   });
 });
