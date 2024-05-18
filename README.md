@@ -44,18 +44,10 @@ export class TestService {
 container.register('TestService', new TestService(), TestService);
 ```
 
-Registering a Service
-typescript
-Copy code
+#### Resolving Dependencies
 
-Resolving Dependencies
-You can resolve dependencies using the resolve method.
-
-typescript
-Copy code
-const service = container.resolve('TestService');
-console.log(service.getValue()); // Output: Hello, Injectofy!
+You can resolve dependencies using the resolve method. NOTICE! : Service is of the type of the resolver automatically.
 
 ```
-
+const service = container.resolve('TestService');
 ```
