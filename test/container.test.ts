@@ -75,4 +75,70 @@ describe('Container', () => {
     expect(inferredType).toBeInstanceOf(TestService);
     expect(inferredType.getValue()).toBe('Hello, Injectofy!');
   });
+
+  test('will resolve to ducked type class when using register and not already registered', () => {
+    class DuckTypedClass {
+      public getValue(): string {
+        return 'Hello, Duck Typing!';
+      }
+    }
+    container.register('TestService', new DuckTypedClass(), DuckTypedClass);
+    const service = container.resolve('TestService');
+    const inferredType: TestService = service;
+    expect(inferredType).toBeInstanceOf(DuckTypedClass);
+    expect(inferredType.getValue()).toBe('Hello, Duck Typing!');
+  });
+
+  test('will not throw when trying to register service from non duck types', () => {
+    const container = new Container<AppServices>({
+      TestService: {
+        implementation: new TestService(),
+        type: TestService,
+      },
+      AnotherService: {
+        implementation: new AnotherService(),
+        type: AnotherService,
+      },
+    });
+
+    class DuckTypedClass {
+      public getValue(): string {
+        return 'Hello, Diff!';
+      }
+    }
+    expect(() =>
+      container.register('TestService', new DuckTypedClass(), TestService)
+    ).not.toThrow(
+      'Type mismatch: TestService is already registered with a different type'
+    );
+    const service = container.resolve('TestService');
+    expect(service.getValue()).toEqual('Hello, Diff!');
+  });
+
+  test('will throw when trying to duck type in a constructor service or previously implemented service', () => {
+    const container = new Container<AppServices>({
+      TestService: {
+        implementation: new TestService(),
+        type: TestService,
+      },
+      AnotherService: {
+        implementation: new AnotherService(),
+        type: AnotherService,
+      },
+    });
+
+    class DuckTypedClass {
+      public getValue(): string {
+        return 'Hello, Diff!';
+      }
+    }
+    expect(() =>
+      container.register('TestService', new DuckTypedClass(), DuckTypedClass)
+    ).toThrow(
+      'Type mismatch: TestService is already registered with a different type'
+    );
+    const service = container.resolve('TestService');
+
+    expect(service.getValue()).toEqual('Hello, Injectofy!');
+  });
 });

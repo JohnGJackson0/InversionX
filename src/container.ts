@@ -2,6 +2,22 @@ class Container<T extends { [key: string]: any }> {
   private services = new Map<keyof T, T[keyof T]>();
   private types = new Map<keyof T, new (...args: any[]) => T[keyof T]>();
 
+  constructor(initialServices?: {
+    [K in keyof T]?: {
+      implementation: T[K];
+      type: new (...args: any[]) => T[K];
+    };
+  }) {
+    if (initialServices) {
+      for (const key in initialServices) {
+        if (initialServices.hasOwnProperty(key)) {
+          const { implementation, type } = initialServices[key]!;
+          this.register(key as keyof T, implementation, type);
+        }
+      }
+    }
+  }
+
   public register<K extends keyof T>(
     identifier: K,
     implementation: T[K],
