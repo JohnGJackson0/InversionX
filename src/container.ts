@@ -1,3 +1,5 @@
+import * as E from 'fp-ts/Either';
+
 class Container<T extends { [key: string]: any }> {
   private services = new Map<keyof T, T[keyof T]>();
   private types = new Map<keyof T, new (...args: any[]) => T[keyof T]>();
@@ -32,16 +34,16 @@ class Container<T extends { [key: string]: any }> {
     this.types.set(identifier, type);
   }
 
-  public resolve<K extends keyof T>(identifier: K): T[K] {
+  public resolve<K extends keyof T>(identifier: K): E.Either<Error, T[K]> {
     // Casting the retrieved service to T[K] using 'any' to ensure type safety.
     // This is necessary because TypeScript cannot infer the exact type from the Map's get method directly.
     const service: T[K] = this.services.get(identifier) as any;
     if (!service) {
-      throw new Error(
-        `Service not found for identifier: ${String(identifier)}`
+      return E.left(
+        new Error(`Service not found for identifier: ${String(identifier)}`)
       );
     }
-    return service;
+    return E.right(service);
   }
 }
 
