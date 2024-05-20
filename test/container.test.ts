@@ -183,4 +183,48 @@ describe('Container', () => {
       failTheTest();
     }
   });
+
+  describe('create container', () => {
+    interface Services {
+      serviceA: ServiceA;
+      serviceB: ServiceB;
+    }
+
+    class ServiceA {
+      constructor(public name: string) {}
+    }
+
+    class ServiceB {
+      constructor(public value: number) {}
+    }
+
+    it('should create a container without initial services', () => {
+      const result = Container.createContainer<Services>();
+      expect(E.isRight(result)).toBe(true);
+
+      const container = E.getOrElseW(() => null)(result);
+      expect(container).not.toBeNull();
+      expect(container).toBeInstanceOf(Container);
+    });
+
+    it('should create a container with initial services', () => {
+      const initialServices = {
+        serviceA: {
+          implementation: new ServiceA('test'),
+          type: ServiceA,
+        },
+        serviceB: {
+          implementation: new ServiceB(42),
+          type: ServiceB,
+        },
+      };
+
+      const result = Container.createContainer<Services>(initialServices);
+      expect(E.isRight(result)).toBe(true);
+
+      const container = E.getOrElseW(() => null)(result);
+      expect(container).not.toBeNull();
+      expect(container).toBeInstanceOf(Container);
+    });
+  });
 });

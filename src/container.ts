@@ -4,6 +4,19 @@ class Container<T extends { [key: string]: any }> {
   private services = new Map<keyof T, T[keyof T]>();
   private types = new Map<keyof T, new (...args: any[]) => T[keyof T]>();
 
+  static createContainer<T extends { [key: string]: any }>(initialServices?: {
+    [K in keyof T]?: {
+      implementation: T[K];
+      type: new (...args: any[]) => T[K];
+    };
+  }): E.Either<Error, Container<T>> {
+    try {
+      return E.right(new Container<T>(initialServices));
+    } catch (error) {
+      return E.left(error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+
   constructor(initialServices?: {
     [K in keyof T]?: {
       implementation: T[K];
