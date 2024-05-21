@@ -27,7 +27,16 @@ class Container<T extends { [key: string]: any }> {
       for (const key in initialServices) {
         if (initialServices.hasOwnProperty(key)) {
           const { implementation, type } = initialServices[key]!;
-          this.register(key as keyof T, implementation, type);
+          const register = this.register(key as keyof T, implementation, type);
+          E.fold(
+            (error: Error) => {
+              // TODO: Needs a test
+              throw error;
+            },
+            (_value: true) => {
+              return;
+            }
+          )(register);
         }
       }
     }
@@ -37,14 +46,17 @@ class Container<T extends { [key: string]: any }> {
     identifier: K,
     implementation: T[K],
     type: new (...args: any[]) => T[K]
-  ): void {
+  ): E.Either<Error, true> {
     if (this.types.has(identifier) && this.types.get(identifier) !== type) {
-      throw new Error(
-        `Type mismatch: ${String(identifier)} is already registered with a different type`
+      return E.left(
+        new Error(
+          `Type mismatch: ${String(identifier)} is already registered with a different type`
+        )
       );
     }
     this.services.set(identifier, implementation);
     this.types.set(identifier, type);
+    return E.right(true);
   }
 
   public resolve<K extends keyof T>(identifier: K): E.Either<Error, T[K]> {

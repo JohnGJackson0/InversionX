@@ -49,7 +49,7 @@ describe('Container', () => {
     }
   });
 
-  test('should throw an error if the service is not registered', () => {
+  test('should result in left/failure if the service is not registered', () => {
     const service = container.resolve('TestService');
 
     if (E.isRight(service)) {
@@ -72,16 +72,23 @@ describe('Container', () => {
     }
   });
 
-  test('should throw an error if attempting to override with a different type', () => {
+  test('should result in left/error if attempting to override with a different type', () => {
     container.register('TestService', new TestService(), TestService);
-    expect(() =>
-      container.register('TestService', new AnotherService(), AnotherService)
-    ).toThrow(
-      'Type mismatch: TestService is already registered with a different type'
+    const service2 = container.register(
+      'TestService',
+      new AnotherService(),
+      AnotherService
     );
+    if (E.isRight(service2)) {
+      failTheTest();
+    } else {
+      expect(service2.left.message).toBe(
+        'Type mismatch: TestService is already registered with a different type'
+      );
+    }
   });
 
-  test('should throw an error if resolving an unregistered service', () => {
+  test('should result in left/failure if resolving an unregistered service', () => {
     const service = container.resolve('AnotherService');
     if (E.isRight(service)) {
       failTheTest();
@@ -122,7 +129,7 @@ describe('Container', () => {
     }
   });
 
-  test('will not throw when trying to register service from non duck types', () => {
+  test('will result in left/failure when trying to register service from non duck types', () => {
     const container = new Container<AppServices>({
       TestService: {
         implementation: new TestService(),
@@ -144,6 +151,17 @@ describe('Container', () => {
     ).not.toThrow(
       'Type mismatch: TestService is already registered with a different type'
     );
+
+    const registerVal = container.register(
+      'TestService',
+      new DuckTypedClass(),
+      TestService
+    );
+
+    if (E.isLeft(registerVal)) {
+      failTheTest();
+    }
+
     const service = container.resolve('TestService');
 
     if (E.isRight(service)) {
@@ -153,7 +171,7 @@ describe('Container', () => {
     }
   });
 
-  test('will throw when trying to duck type in a constructor service or previously implemented service', () => {
+  test('will show left/failure when trying to duck type in a constructor service or previously implemented service', () => {
     const container = new Container<AppServices>({
       TestService: {
         implementation: new TestService(),
@@ -170,11 +188,20 @@ describe('Container', () => {
         return 'Hello, Diff!';
       }
     }
-    expect(() =>
-      container.register('TestService', new DuckTypedClass(), DuckTypedClass)
-    ).toThrow(
-      'Type mismatch: TestService is already registered with a different type'
+    const valOfRegister = container.register(
+      'TestService',
+      new DuckTypedClass(),
+      DuckTypedClass
     );
+
+    if (E.isRight(valOfRegister)) {
+      failTheTest();
+    } else {
+      expect(valOfRegister.left.message).toEqual(
+        'Type mismatch: TestService is already registered with a different type'
+      );
+    }
+
     const service = container.resolve('TestService');
 
     if (E.isRight(service)) {
