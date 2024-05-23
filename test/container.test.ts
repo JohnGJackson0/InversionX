@@ -234,6 +234,39 @@ describe('Container', () => {
       expect(container).toBeInstanceOf(Container);
     });
 
+    it('should update after the register called on create container', () => {
+      const initialServices = {
+        serviceA: {
+          implementation: new ServiceA('test'),
+          type: ServiceA,
+        },
+        serviceB: {
+          implementation: new ServiceB(42),
+          type: ServiceB,
+        },
+      };
+      const result = Container.createContainer<Services>(initialServices);
+      expect(E.isRight(result)).toBe(true);
+      E.fold(
+        (_: Error) => {
+          failTheTest();
+        },
+        (val: Container<Services>) => {
+          // @ts-expect-error
+          val.register('serviceA', ServiceB, () => new ServiceA(''));
+          // @ts-expect-error
+          val.register('serviceA', ServiceB, () => new ServiceB(42));
+          val.register('serviceA', new ServiceA('updated'), ServiceA);
+          expect(
+            E.getOrElseW(() => null)(val.resolve('serviceA'))?.name
+          ).toEqual('updated');
+          expect(
+            E.getOrElseW(() => null)(val.resolve('serviceA'))
+          ).toBeInstanceOf(ServiceA);
+        }
+      )(result);
+    });
+
     it('should create a container with initial services', () => {
       const initialServices = {
         serviceA: {
