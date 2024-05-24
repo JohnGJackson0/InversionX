@@ -1,14 +1,22 @@
 import * as E from 'fp-ts/Either';
 
+type Constructor<T> = new (...args: any[]) => T;
+type Factory<T> = () => T;
+
+interface ServiceEntry<T> {
+  implementation: T;
+  type: Constructor<T> | Factory<T>;
+}
+
 class Container<T extends { [key: string]: any }> {
   private services = new Map<keyof T, T[keyof T]>();
-  private types = new Map<keyof T, new (...args: any[]) => T[keyof T]>();
+  private types = new Map<
+    keyof T,
+    Constructor<T[keyof T]> | Factory<T[keyof T]>
+  >();
 
   static createContainer<T extends { [key: string]: any }>(initialServices?: {
-    [K in keyof T]?: {
-      implementation: T[K];
-      type: new (...args: any[]) => T[K];
-    };
+    [K in keyof T]?: ServiceEntry<T[K]>;
   }): E.Either<Error, Container<T>> {
     try {
       return E.right(new Container<T>(initialServices));
@@ -18,10 +26,7 @@ class Container<T extends { [key: string]: any }> {
   }
 
   constructor(initialServices?: {
-    [K in keyof T]?: {
-      implementation: T[K];
-      type: new (...args: any[]) => T[K];
-    };
+    [K in keyof T]?: ServiceEntry<T[K]>;
   }) {
     if (initialServices) {
       for (const key in initialServices) {
@@ -30,7 +35,6 @@ class Container<T extends { [key: string]: any }> {
           const register = this.register(key as keyof T, implementation, type);
           E.fold(
             (error: Error) => {
-              // TODO: Needs a test
               throw error;
             },
             (_value: true) => {
@@ -45,7 +49,7 @@ class Container<T extends { [key: string]: any }> {
   public register<K extends keyof T>(
     identifier: K,
     implementation: T[K],
-    type: new (...args: any[]) => T[K]
+    type: Constructor<T[K]> | Factory<T[K]>
   ): E.Either<Error, true> {
     if (this.types.has(identifier) && this.types.get(identifier) !== type) {
       return E.left(
@@ -54,14 +58,13 @@ class Container<T extends { [key: string]: any }> {
         )
       );
     }
+
     this.services.set(identifier, implementation);
     this.types.set(identifier, type);
     return E.right(true);
   }
 
   public resolve<K extends keyof T>(identifier: K): E.Either<Error, T[K]> {
-    // Casting the retrieved service to T[K] using 'any' to ensure type safety.
-    // This is necessary because TypeScript cannot infer the exact type from the Map's get method directly.
     const service: T[K] = this.services.get(identifier) as any;
     if (!service) {
       return E.left(

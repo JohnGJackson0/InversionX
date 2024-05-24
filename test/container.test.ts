@@ -211,6 +211,29 @@ describe('Container', () => {
     }
   });
 
+  test('functions work in the container', () => {
+    interface Services {
+      serviceA: () => String;
+    }
+    const initialServices = {
+      serviceA: {
+        implementation: () => 'TEST',
+        type: () => String,
+      },
+    };
+
+    const container = new Container<Services>(initialServices);
+
+    E.fold(
+      (err: Error) => {
+        throw `Fail The Test ${err.message}`;
+      },
+      (val: () => String) => {
+        expect(val()).toEqual('TEST');
+      }
+    )(container.resolve('serviceA'));
+  });
+
   describe('create container', () => {
     interface Services {
       serviceA: ServiceA;
@@ -252,7 +275,6 @@ describe('Container', () => {
           failTheTest();
         },
         (val: Container<Services>) => {
-          // @ts-expect-error
           val.register('serviceA', ServiceB, () => new ServiceA(''));
           // @ts-expect-error
           val.register('serviceA', ServiceB, () => new ServiceB(42));
@@ -263,6 +285,50 @@ describe('Container', () => {
           expect(
             E.getOrElseW(() => null)(val.resolve('serviceA'))
           ).toBeInstanceOf(ServiceA);
+        }
+      )(result);
+    });
+
+    it('does not update and returns error when resolving to a different type', () => {
+      const initialServices = {
+        serviceA: {
+          implementation: new ServiceA('test'),
+          type: ServiceA,
+        },
+        serviceB: {
+          implementation: new ServiceB(42),
+          type: ServiceB,
+        },
+      };
+      const result = Container.createContainer<Services>(initialServices);
+      expect(E.isRight(result)).toBe(true);
+      E.fold(
+        (_: Error) => {
+          failTheTest();
+        },
+        (container: Container<Services>) => {
+          const register = container.register(
+            'serviceA',
+            ServiceB,
+            () => new ServiceA('')
+          );
+
+          expect(E.isLeft(register)).toEqual(true);
+
+          if (E.isLeft(register)) {
+            expect(register.left.message).toEqual(
+              'Type mismatch: serviceA is already registered with a different type'
+            );
+          }
+          const serviceA = container.resolve('serviceA');
+          E.fold(
+            (err: Error) => {
+              throw `FAIL THE TEST ${err}`;
+            },
+            (val: ServiceA) => {
+              expect(val.name).toEqual('test');
+            }
+          )(serviceA);
         }
       )(result);
     });
