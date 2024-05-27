@@ -73,6 +73,14 @@ class Container<T extends { [key: string]: any }> {
     }
     return E.right(service);
   }
+
+  public use<K extends keyof T>(identifier: K): T[K] {
+    const service = this.resolve(identifier);
+    if (E.isLeft(service)) {
+      throw service.left;
+    }
+    return service.right;
+  }
 }
 
 export { Container };
