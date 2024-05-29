@@ -1,8 +1,4 @@
-// ObjectWrapper.test.ts
-
-import { object, isUsingObjectWrapper, resolver } from '../src/Object';
-
-// Sample class to test with
+import { object, resolver, isResolver } from '../src/object';
 class MyClass {
   someProperty: string;
 
@@ -15,45 +11,42 @@ class MyClass {
   }
 }
 
-describe('ObjectWrapper', () => {
+describe('object', () => {
   test('should add isUsingObject method to the instance', () => {
     const instance = object(MyClass);
-    expect(isUsingObjectWrapper(instance)).toBe(true);
+    expect(isResolver(instance)).toBe(true);
   });
 
-  test('should be false if isUsingObjectWrapper not using object wrapper', () => {
+  test('should be false if isResolver not using object wrapper', () => {
     const instance = new MyClass();
-    expect(isUsingObjectWrapper(instance)).toBe(false);
+    expect(isResolver(instance)).toBe(false);
   });
 
   test('instance created directly should not have isUsingObject method', () => {
     const instance2 = new MyClass();
-    expect(isUsingObjectWrapper(instance2)).toBe(false);
+    expect(isResolver(instance2)).toBe(false);
   });
 
   describe('resolver', () => {
     test('generic is not correct', () => {
       const resolvedVal = resolver<MyClass>('21');
       expect(typeof resolvedVal).toBe('string');
-      // @ts-ignore
       expect(resolvedVal).toEqual('21');
     });
 
     test('should resolve a value back to the original value', () => {
       const resolvedVal = resolver<string>('21');
       expect(typeof resolvedVal).toBe('string');
-      // @ts-ignore
       expect(resolvedVal).toEqual('21');
     });
 
-    /* FAILING TEST
     test('should resolve a function back to the original function', () => {
       const func = () => {
         return '123';
       };
       const resolvedVal = resolver<() => string>(func);
       expect(resolvedVal()).toEqual('123');
-    });*/
+    });
 
     test('should resolve to the same when not using the object wrapper', () => {
       const classInstance = new MyClass();
@@ -71,10 +64,12 @@ describe('ObjectWrapper', () => {
     });
 
     test('if not a class it will throw ts error', () => {
-      // @ts-expect-error
-      object({ any: 'test' });
-      // @ts-expect-error
-      object(() => {});
+      try {
+        // @ts-expect-error
+        object({ any: 'test' });
+        // @ts-expect-error
+        object(() => {});
+      } catch (e: unknown) {}
     });
   });
 
@@ -88,12 +83,16 @@ describe('ObjectWrapper', () => {
         }
 
         someMethod() {
-          return 'some method called';
+          return `some method called ${this.someProperty}`;
         }
       }
       const classInstance = object(MyClass);
+      // TODO should fail
       const instance = resolver<MyClass>(classInstance);
       expect(instance).toBeInstanceOf(MyClass);
+
+      // TODO add construct
+      expect(instance.someMethod()).toEqual('some method called undefined');
     });
   });
 });
