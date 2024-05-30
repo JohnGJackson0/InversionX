@@ -94,5 +94,22 @@ describe('object', () => {
       // TODO add construct
       expect(instance.someMethod()).toEqual('some method called undefined');
     });
+
+    it('will properly construct with a parameter', () => {
+      class MyClass {
+        someProperty: string;
+        constructor(test: string) {
+          this.someProperty = test;
+        }
+        someMethod() {
+          return `some method called ${this.someProperty}`;
+        }
+      }
+      const classInstance = object(MyClass).construct('TEST someProperty');
+      const resolved = resolver<MyClass>(classInstance);
+      expect(resolved.someMethod()).toEqual(
+        'some method called TEST someProperty'
+      );
+    });
   });
 });
