@@ -74,25 +74,6 @@ describe('object', () => {
   });
 
   describe('constructor args', () => {
-    it('will accept with any constructor argument', () => {
-      class MyClass {
-        someProperty: string;
-
-        constructor(test: string) {
-          this.someProperty = test;
-        }
-
-        someMethod() {
-          return `some method called ${this.someProperty}`;
-        }
-      }
-      const classInstance = object(MyClass);
-      // TODO should fail
-      const instance = resolver<MyClass>(classInstance);
-      expect(instance).toBeInstanceOf(MyClass);
-      expect(instance.someMethod()).toEqual('some method called undefined');
-    });
-
     it('will properly construct with a parameter', () => {
       class MyClass {
         someProperty: string;
@@ -126,6 +107,62 @@ describe('object', () => {
       object(MyClass).lazyConstruct(123);
       const resolved = object(MyClass).lazyConstruct('123');
       expect(resolver<MyClass>(resolved).someMethod()).toEqual('123');
+    });
+
+    it('will throw when resolving without constructing when there is paramters', () => {
+      class MyClass {
+        someProperty: string;
+        constructor(test: string) {
+          this.someProperty = test;
+        }
+        someMethod() {
+          return `some method called ${this.someProperty}`;
+        }
+      }
+      const classInstance = object(MyClass);
+      let throws = false;
+      try {
+        resolver(classInstance);
+      } catch (e: unknown) {
+        throws = true;
+        if (e instanceof Error) {
+          expect(e.message).toEqual(
+            'There is a required parameter and it was not constructed! Use the object(class).contruct(...)'
+          );
+        } else {
+          throw 'Fail the test';
+        }
+      }
+      expect(throws).toEqual(true);
+    });
+
+    it('works with javascript', () => {
+      class MyClass {
+        // @ts-ignore
+        someProperty;
+        // @ts-ignore
+        constructor(test) {
+          this.someProperty = test;
+        }
+        someMethod() {
+          return `some method called ${this.someProperty}`;
+        }
+      }
+      const classInstance = object(MyClass);
+      let throws = false;
+      try {
+        resolver(classInstance);
+      } catch (e: unknown) {
+        throws = true;
+        if (e instanceof Error) {
+          expect(e.message).toEqual(
+            'There is a required parameter and it was not constructed! Use the object(class).contruct(...)'
+          );
+        } else {
+          throw 'Fail the test';
+        }
+      }
+      expect(throws).toEqual(true);
     });
   });
 });
