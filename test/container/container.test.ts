@@ -1,5 +1,5 @@
-import { Container } from '../src/container';
 import * as E from 'fp-ts/Either';
+import { Container } from '../../src/container';
 
 export class TestService {
   public getValue(): string {

@@ -1,4 +1,4 @@
-import { Container } from '../src/container';
+import { Container } from '../../src/container';
 import * as E from 'fp-ts/Either';
 
 class TestService {
