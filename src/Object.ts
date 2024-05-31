@@ -1,5 +1,8 @@
 type ClassConstructor<T> = new (...args: any[]) => T;
-type Resolvers<T = any> = { new (...args: any[]): T } | (() => T) | T;
+type ClassType<T> = { new (...args: any[]): T };
+type FunctionType<T> = (() => T) | ((...args: any[]) => T);
+type ValueType<T> = T;
+type Resolvers<T = any> = ClassType<T> | FunctionType<T> | ValueType<T>;
 
 interface ObjectClass<T> extends ClassConstructor<T> {
   construct(...args: any[]): ObjectClass<T>;
@@ -32,21 +35,25 @@ export function object<T extends object>(
 }
 
 export function isResolver(input: Resolvers): boolean {
+  return isClassResolver(input);
+}
+
+function isClassResolver(input: Resolvers): boolean {
   return (
     typeof input === 'function' &&
     input.prototype &&
     input.prototype.constructor &&
-    input.isUsingObject() === true
+    input?.isUsingObject() === true
   );
 }
 
 export function resolver<T>(input: Resolvers): T {
   const args = input?.getArgs && input.getArgs();
-  if (isResolver(input) && !!args && args?.length > 0) {
-    return new (input as { new (...args: any[]): T })(...args);
+  if (isClassResolver(input) && !!args && args?.length > 0) {
+    return new (input as ClassType<T>)(...args);
   }
-  if (isResolver(input)) {
-    return new (input as { new (...args: any[]): T })();
+  if (isClassResolver(input)) {
+    return new (input as ClassType<T>)();
   }
   return input as T;
 }
