@@ -90,8 +90,6 @@ describe('object', () => {
       // TODO should fail
       const instance = resolver<MyClass>(classInstance);
       expect(instance).toBeInstanceOf(MyClass);
-
-      // TODO add construct
       expect(instance.someMethod()).toEqual('some method called undefined');
     });
 
@@ -105,11 +103,29 @@ describe('object', () => {
           return `some method called ${this.someProperty}`;
         }
       }
-      const classInstance = object(MyClass).construct('TEST someProperty');
+      const classInstance = object(MyClass).lazyConstruct('TEST someProperty');
       const resolved = resolver<MyClass>(classInstance);
       expect(resolved.someMethod()).toEqual(
         'some method called TEST someProperty'
       );
+    });
+
+    it('is typesafe on lazy constructors', () => {
+      class MyClass {
+        someProperty: string;
+        constructor(test: string) {
+          this.someProperty = test;
+        }
+        someMethod() {
+          return `${this.someProperty}`;
+        }
+      }
+      // @ts-expect-error
+      object(MyClass).lazyConstruct();
+      // @ts-expect-error
+      object(MyClass).lazyConstruct(123);
+      const resolved = object(MyClass).lazyConstruct('123');
+      expect(resolver<MyClass>(resolved).someMethod()).toEqual('123');
     });
   });
 });
