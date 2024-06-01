@@ -1,4 +1,5 @@
-import { object, resolver } from '../../src/object';
+import { object } from '../../src/object';
+import { resolver } from '../../src/resolver';
 
 describe('Constructor', () => {
   it('will properly construct with a parameter', () => {
