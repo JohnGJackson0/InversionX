@@ -85,5 +85,10 @@ describe('Resolvers', () => {
       const ans = LazyMultiplyTwo.invoke();
       expect(ans).toEqual(4);
     });
+
+    it('works for functions with no arguments', () => {
+      const test = () => 'test';
+      expect(func(test).invoke()).toEqual('test');
+    });
   });
 });
