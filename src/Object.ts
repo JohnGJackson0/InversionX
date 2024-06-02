@@ -33,7 +33,7 @@ function generateSchema<T extends new (...args: any[]) => any>(cls: T) {
 }
 
 export function object<T extends object, A extends any[]>(
-  ClassName: new (...args: A) => T
+  ClassName: new (...args: A) => T | (new () => T)
 ): ObjectClass<T, A> {
   class WrappedClass {
     static originalClass = ClassName;
@@ -43,7 +43,7 @@ export function object<T extends object, A extends any[]>(
     static getNumberOfRequiredParameters = () => {
       return this.numOfRequiredParams ?? 0;
     };
-    static getOriginalClass(): new (...args: A) => T {
+    static getOriginalClass(): new (...args: A) => T | (new () => T) {
       return this.originalClass;
     }
     static isUsingObject(): boolean {
@@ -55,6 +55,22 @@ export function object<T extends object, A extends any[]>(
     static lazyConstruct(...args: A): ObjectClass<T, A> {
       this.argsKey = args;
       return WrappedClass as unknown as ObjectClass<T, A>;
+    }
+    static create() {
+      if (!!this.getArgs && this.getArgs()?.length > 0) {
+        if (incorrectConstruction(this as unknown as ObjectClass<T, A>)) {
+          throw Error(
+            'There is a missing required parameter! Either Adjust the required parameters or correct the construction of the class.'
+          );
+        }
+        return new this.originalClass(...this.getArgs());
+      }
+      if (incorrectConstruction(this as unknown as ObjectClass<T, A>)) {
+        throw Error(
+          'There is a required parameter and it was not constructed! Use the object(class).contruct(...)'
+        );
+      }
+      return new (this.originalClass as new () => T)();
     }
     constructor(...args: A) {
       const instance = new ClassName(...args);
