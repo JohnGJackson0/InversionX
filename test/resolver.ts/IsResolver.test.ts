@@ -1,6 +1,4 @@
-import { func } from '../../src/func';
-import { object } from '../../src/object';
-import { isResolver } from '../../src/resolver';
+import { func, object, isResolver } from '../../src/resolvers';
 
 class MyClass {
   someProperty: string;
