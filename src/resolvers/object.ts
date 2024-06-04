@@ -1,4 +1,4 @@
-type ObjectClass<T, A extends any[]> = {
+export type ObjectClass<T, A extends any[]> = {
   new (...args: A): T;
   isUsingObject(): boolean;
   getArgs(): A;

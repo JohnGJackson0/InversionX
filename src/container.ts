@@ -1,6 +1,6 @@
 import * as E from 'fp-ts/Either';
 
-type Constructor<T> = new (...args: any[]) => T;
+export type Constructor<T> = new (...args: any[]) => T;
 type Factory<T> = () => T;
 
 interface ServiceEntry<T> {
