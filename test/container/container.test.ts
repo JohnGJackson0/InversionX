@@ -62,6 +62,7 @@ describe('Container', () => {
   });
 
   test('should override an existing service with the same type', () => {
+    console.log('');
     container.register('TestService', new TestService());
     container.register('TestService', new TestService());
     const service = container.resolve('TestService');
