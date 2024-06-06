@@ -61,11 +61,7 @@ describe('Container use function', () => {
     }
 
     const additionalService = new AdditionalService();
-    container.register(
-      'additionalService' as any,
-      additionalService,
-      AdditionalService
-    );
+    container.register('additionalService' as any, additionalService);
 
     const usedService = container.use('additionalService' as any);
     expect(usedService).toBeInstanceOf(AdditionalService);

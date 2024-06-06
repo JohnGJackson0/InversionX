@@ -1,6 +1,6 @@
 import * as E from 'fp-ts/Either';
 import { object } from '../../src/resolvers';
-import { Constructor, Container } from '../../src/container';
+import { Container } from '../../src/container';
 import { ObjectClass } from '../../src/resolvers/object';
 
 describe('Container - Lazy Init', () => {
@@ -20,10 +20,6 @@ describe('Container - Lazy Init', () => {
     const initialServices = {
       TestService: {
         implementation: object(TestService),
-        // TODO
-        type: object(TestService) as unknown as Constructor<
-          ObjectClass<TestService, []>
-        >,
       },
     };
     const container = Container.createContainer<AppServices>(initialServices);

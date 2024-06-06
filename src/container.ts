@@ -1,19 +1,13 @@
 import * as E from 'fp-ts/Either';
 
 export type Constructor<T> = new (...args: any[]) => T;
-type Factory<T> = () => T;
 
 interface ServiceEntry<T> {
   implementation: T;
-  type: Constructor<T> | Factory<T>;
 }
 
 class Container<T extends { [key: string]: any }> {
   private services = new Map<keyof T, T[keyof T]>();
-  private types = new Map<
-    keyof T,
-    Constructor<T[keyof T]> | Factory<T[keyof T]>
-  >();
 
   static createContainer<T extends { [key: string]: any }>(initialServices?: {
     [K in keyof T]?: ServiceEntry<T[K]>;
@@ -31,8 +25,8 @@ class Container<T extends { [key: string]: any }> {
     if (initialServices) {
       for (const key in initialServices) {
         if (initialServices.hasOwnProperty(key)) {
-          const { implementation, type } = initialServices[key]!;
-          const register = this.register(key as keyof T, implementation, type);
+          const { implementation } = initialServices[key]!;
+          const register = this.register(key as keyof T, implementation);
           E.fold(
             (error: Error) => {
               throw error;
@@ -48,19 +42,9 @@ class Container<T extends { [key: string]: any }> {
 
   public register<K extends keyof T>(
     identifier: K,
-    implementation: T[K],
-    type: Constructor<T[K]> | Factory<T[K]>
+    implementation: T[K]
   ): E.Either<Error, true> {
-    if (this.types.has(identifier) && this.types.get(identifier) !== type) {
-      return E.left(
-        new Error(
-          `Type mismatch: ${String(identifier)} is already registered with a different type`
-        )
-      );
-    }
-
     this.services.set(identifier, implementation);
-    this.types.set(identifier, type);
     return E.right(true);
   }
 

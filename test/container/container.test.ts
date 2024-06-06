@@ -25,7 +25,7 @@ describe('Container', () => {
   });
 
   test('should register and resolve TestService', () => {
-    container.register('TestService', new TestService(), TestService);
+    container.register('TestService', new TestService());
     const service = container.resolve('TestService');
 
     if (E.isRight(service)) {
@@ -39,7 +39,7 @@ describe('Container', () => {
   const failTheTest = () => expect(true).not.toEqual(true);
 
   test('should register and resolve AnotherService', () => {
-    container.register('AnotherService', new AnotherService(), AnotherService);
+    container.register('AnotherService', new AnotherService());
     const service = container.resolve('AnotherService');
     if (E.isRight(service)) {
       expect(service.right).toBeInstanceOf(AnotherService);
@@ -62,29 +62,13 @@ describe('Container', () => {
   });
 
   test('should override an existing service with the same type', () => {
-    container.register('TestService', new TestService(), TestService);
-    container.register('TestService', new TestService(), TestService);
+    container.register('TestService', new TestService());
+    container.register('TestService', new TestService());
     const service = container.resolve('TestService');
     if (E.isRight(service)) {
       expect(service.right.getValue()).toBe('Hello, Injectofy!');
     } else {
       failTheTest();
-    }
-  });
-
-  test('should result in left/error if attempting to override with a different type', () => {
-    container.register('TestService', new TestService(), TestService);
-    const service2 = container.register(
-      'TestService',
-      new AnotherService(),
-      AnotherService
-    );
-    if (E.isRight(service2)) {
-      failTheTest();
-    } else {
-      expect(service2.left.message).toBe(
-        'Type mismatch: TestService is already registered with a different type'
-      );
     }
   });
 
@@ -100,7 +84,7 @@ describe('Container', () => {
   });
 
   test('should infer the type based on the container', () => {
-    container.register('TestService', new TestService(), TestService);
+    container.register('TestService', new TestService());
     const service = container.resolve('TestService');
 
     if (E.isRight(service)) {
@@ -118,7 +102,7 @@ describe('Container', () => {
         return 'Hello, Duck Typing!';
       }
     }
-    container.register('TestService', new DuckTypedClass(), DuckTypedClass);
+    container.register('TestService', new DuckTypedClass());
     const service = container.resolve('TestService');
     if (E.isRight(service)) {
       const inferredType: TestService = service.right;
@@ -133,11 +117,9 @@ describe('Container', () => {
     const container = new Container<AppServices>({
       TestService: {
         implementation: new TestService(),
-        type: TestService,
       },
       AnotherService: {
         implementation: new AnotherService(),
-        type: AnotherService,
       },
     });
 
@@ -147,16 +129,12 @@ describe('Container', () => {
       }
     }
     expect(() =>
-      container.register('TestService', new DuckTypedClass(), TestService)
+      container.register('TestService', new DuckTypedClass())
     ).not.toThrow(
       'Type mismatch: TestService is already registered with a different type'
     );
 
-    const registerVal = container.register(
-      'TestService',
-      new DuckTypedClass(),
-      TestService
-    );
+    const registerVal = container.register('TestService', new DuckTypedClass());
 
     if (E.isLeft(registerVal)) {
       failTheTest();
@@ -166,46 +144,6 @@ describe('Container', () => {
 
     if (E.isRight(service)) {
       expect(service.right.getValue()).toEqual('Hello, Diff!');
-    } else {
-      failTheTest();
-    }
-  });
-
-  test('will show left/failure when trying to duck type in a constructor service or previously implemented service', () => {
-    const container = new Container<AppServices>({
-      TestService: {
-        implementation: new TestService(),
-        type: TestService,
-      },
-      AnotherService: {
-        implementation: new AnotherService(),
-        type: AnotherService,
-      },
-    });
-
-    class DuckTypedClass {
-      public getValue(): string {
-        return 'Hello, Diff!';
-      }
-    }
-    const valOfRegister = container.register(
-      'TestService',
-      new DuckTypedClass(),
-      DuckTypedClass
-    );
-
-    if (E.isRight(valOfRegister)) {
-      failTheTest();
-    } else {
-      expect(valOfRegister.left.message).toEqual(
-        'Type mismatch: TestService is already registered with a different type'
-      );
-    }
-
-    const service = container.resolve('TestService');
-
-    if (E.isRight(service)) {
-      expect(service.right.getValue()).toEqual('Hello, Injectofy!');
     } else {
       failTheTest();
     }
@@ -275,60 +213,15 @@ describe('Container', () => {
           failTheTest();
         },
         (val: Container<Services>) => {
-          val.register('serviceA', ServiceB, () => new ServiceA(''));
-          // @ts-expect-error
-          val.register('serviceA', ServiceB, () => new ServiceB(42));
-          val.register('serviceA', new ServiceA('updated'), ServiceA);
+          val.register('serviceA', () => new ServiceA(''));
+          val.register('serviceA', () => new ServiceB(42));
+          val.register('serviceA', new ServiceA('updated'));
           expect(
             E.getOrElseW(() => null)(val.resolve('serviceA'))?.name
           ).toEqual('updated');
           expect(
             E.getOrElseW(() => null)(val.resolve('serviceA'))
           ).toBeInstanceOf(ServiceA);
-        }
-      )(result);
-    });
-
-    it('does not update and returns error when resolving to a different type', () => {
-      const initialServices = {
-        serviceA: {
-          implementation: new ServiceA('test'),
-          type: ServiceA,
-        },
-        serviceB: {
-          implementation: new ServiceB(42),
-          type: ServiceB,
-        },
-      };
-      const result = Container.createContainer<Services>(initialServices);
-      expect(E.isRight(result)).toBe(true);
-      E.fold(
-        (_: Error) => {
-          failTheTest();
-        },
-        (container: Container<Services>) => {
-          const register = container.register(
-            'serviceA',
-            ServiceB,
-            () => new ServiceA('')
-          );
-
-          expect(E.isLeft(register)).toEqual(true);
-
-          if (E.isLeft(register)) {
-            expect(register.left.message).toEqual(
-              'Type mismatch: serviceA is already registered with a different type'
-            );
-          }
-          const serviceA = container.resolve('serviceA');
-          E.fold(
-            (err: Error) => {
-              throw `FAIL THE TEST ${err}`;
-            },
-            (val: ServiceA) => {
-              expect(val.name).toEqual('test');
-            }
-          )(serviceA);
         }
       )(result);
     });
