@@ -1,4 +1,5 @@
 import * as E from 'fp-ts/Either';
+import { resolver } from './resolvers';
 
 export type Constructor<T> = new (...args: any[]) => T;
 
@@ -63,7 +64,7 @@ class Container<T extends { [key: string]: any }> {
     if (E.isLeft(service)) {
       throw service.left;
     }
-    return service.right;
+    return resolver(service.right);
   }
 }
 
