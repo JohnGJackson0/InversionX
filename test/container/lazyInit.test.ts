@@ -103,10 +103,39 @@ describe('Container - Lazy Init', () => {
       },
       (val: Container<AppServices>) => {
         try {
-          expect(
-            // TODO Cast to TestService
-            (val.use('TestService') as unknown as TestService).getValue()
-          ).toEqual('Hello, Injectofy!');
+          expect(val.use('TestService').getValue()).toEqual(
+            'Hello, Injectofy!'
+          );
+        } catch (e: unknown) {
+          throw 'Fail the test';
+        }
+      }
+    )(container);
+  });
+
+  test('use object wrapper types work', () => {
+    class TestService {
+      public getValue(): string {
+        return 'Hello, Injectofy!';
+      }
+    }
+    interface AppServices {
+      TestService: ObjectClass<TestService, []>;
+    }
+    const initialServices = {
+      TestService: {
+        implementation: object(TestService),
+      },
+    };
+    const container = Container.createContainer<AppServices>(initialServices);
+    E.fold(
+      (e: Error) => {
+        throw `fail the test ${e.message}`;
+      },
+      (val: Container<AppServices>) => {
+        try {
+          const test = val.use('TestService');
+          expect(test).toBeInstanceOf(TestService);
         } catch (e: unknown) {
           throw 'Fail the test';
         }

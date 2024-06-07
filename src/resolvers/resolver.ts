@@ -1,3 +1,5 @@
+import { ObjectClass } from './object';
+
 type ClassType<T> = { new (...args: any[]): T };
 type FunctionType<T> = (() => T) | ((...args: any[]) => T);
 type ValueType<T> = T;
@@ -9,12 +11,19 @@ export function isResolver(input: Resolvers): boolean {
 function isFuncResolver(input: Resolvers) {
   return input.isUsingFunc !== undefined;
 }
-function isClassResolver(input: Resolvers): boolean {
-  return typeof input?.isUsingObject === 'function';
+
+function isClassResolver<T, A extends any[]>(
+  input: any
+): input is ObjectClass<T, A> {
+  return (
+    typeof input.createInstance === 'function' &&
+    typeof input?.isUsingObject === 'function'
+  );
 }
-export function resolver<T>(input: Resolvers): T {
-  if (isClassResolver(input)) {
-    return input.create() as T;
+
+export function resolver<T, A extends any[]>(input: T | ObjectClass<T, A>) {
+  if (isClassResolver<T, A>(input)) {
+    return input.createInstance();
   }
-  return input as T;
+  return input;
 }

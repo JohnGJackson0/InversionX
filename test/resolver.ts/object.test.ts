@@ -13,13 +13,13 @@ class MyClass {
 
 describe('Resolver Object', () => {
   test('generic is not correct', () => {
-    const resolvedVal = resolver<MyClass>('21');
+    const resolvedVal = resolver('21');
     expect(typeof resolvedVal).toBe('string');
     expect(resolvedVal).toEqual('21');
   });
 
   test('should resolve a value back to the original value', () => {
-    const resolvedVal = resolver<string>('21');
+    const resolvedVal = resolver('21');
     expect(typeof resolvedVal).toBe('string');
     expect(resolvedVal).toEqual('21');
   });
@@ -28,13 +28,13 @@ describe('Resolver Object', () => {
     const func = () => {
       return '123';
     };
-    const resolvedVal = resolver<() => string>(func);
+    const resolvedVal = resolver(func);
     expect(resolvedVal()).toEqual('123');
   });
 
   test('should resolve to the same when not using the object wrapper', () => {
     const classInstance = new MyClass();
-    const instance = resolver<MyClass>(classInstance);
+    const instance = resolver<MyClass, any>(classInstance);
     expect(instance).toBeInstanceOf(MyClass);
     expect(instance.someMethod()).toEqual('some method called');
   });
@@ -42,7 +42,7 @@ describe('Resolver Object', () => {
   test('when using the wrapper it will create the instance directly', () => {
     const classInstance = object(MyClass);
     expect(classInstance).not.toBeInstanceOf(MyClass);
-    const instance = resolver<MyClass>(classInstance);
+    const instance = resolver<MyClass, any>(classInstance);
     expect(instance).toBeInstanceOf(MyClass);
     expect(instance.someMethod()).toEqual('some method called');
   });
@@ -67,7 +67,7 @@ describe('Resolver Object', () => {
       }
     }
     const classInstance = object(MyClass).lazyConstruct('TEST someProperty');
-    const resolved = resolver<MyClass>(classInstance);
+    const resolved = resolver<MyClass, any>(classInstance);
     expect(resolved.someMethod()).toEqual(
       'some method called TEST someProperty'
     );
@@ -88,7 +88,7 @@ describe('Resolver Object', () => {
     // @ts-expect-error
     object(MyClass).lazyConstruct(123);
     const resolved = object(MyClass).lazyConstruct('123');
-    expect(resolver<MyClass>(resolved).someMethod()).toEqual('123');
+    expect(resolver<MyClass, any>(resolved).someMethod()).toEqual('123');
   });
 
   it('will throw when resolving without constructing when there is paramters', () => {

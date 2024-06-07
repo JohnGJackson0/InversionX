@@ -3,6 +3,7 @@ export type ObjectClass<T, A extends any[]> = {
   isUsingObject(): boolean;
   getArgs(): A;
   lazyConstruct(...args: A): ObjectClass<T, A>;
+  createInstance(): T;
   getOriginalClass(): ObjectClass<T, A>;
   getNumberOfRequiredParameters(): number;
 };
@@ -56,7 +57,7 @@ export function object<T extends object, A extends any[]>(
       this.argsKey = args;
       return WrappedClass as unknown as ObjectClass<T, A>;
     }
-    static create() {
+    static createInstance() {
       if (!!this.getArgs && this.getArgs()?.length > 0) {
         if (incorrectConstruction(this as unknown as ObjectClass<T, A>)) {
           throw Error(
