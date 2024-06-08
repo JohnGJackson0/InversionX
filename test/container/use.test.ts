@@ -37,20 +37,30 @@ describe('Container use function', () => {
 
   test('should use a registered service', () => {
     const service = container.use('testService');
-    expect(service).toBeInstanceOf(TestService);
-    expect(service.getName()).toBe('TestService');
+    if (E.isLeft(service)) {
+      throw '';
+    }
+    expect(service.right).toBeInstanceOf(TestService);
+    expect(service.right.getName()).toBe('TestService');
   });
 
   test('should throw an error if service is not registered', () => {
-    expect(() => container.use('nonExistentService' as any)).toThrow(
+    const service = container.use('nonExistentService' as any);
+    if (E.isRight(service)) {
+      throw '';
+    }
+    expect(service.left.message).toEqual(
       'Service not found for identifier: nonExistentService'
     );
   });
 
   test('should use another registered service', () => {
     const anotherService = container.use('anotherService');
-    expect(anotherService).toBeInstanceOf(AnotherService);
-    expect(anotherService.getDescription()).toBe('AnotherService');
+    if (E.isLeft(anotherService)) {
+      throw '';
+    }
+    expect(anotherService.right).toBeInstanceOf(AnotherService);
+    expect(anotherService.right.getDescription()).toBe('AnotherService');
   });
 
   test('should use services after additional registration', () => {
@@ -62,20 +72,13 @@ describe('Container use function', () => {
 
     const additionalService = new AdditionalService();
     container.register('additionalService' as any, additionalService);
-
     const usedService = container.use('additionalService' as any);
-    expect(usedService).toBeInstanceOf(AdditionalService);
-    expect(usedService.getInfo()).toBe('AdditionalService');
-  });
 
-  test('should handle service resolution failure gracefully', () => {
-    const resolveSpy = jest.spyOn(container, 'resolve');
-    resolveSpy.mockReturnValueOnce(
-      E.left(new Error('Simulated resolve error'))
-    );
-    expect(() => container.use('testService')).toThrow(
-      'Simulated resolve error'
-    );
-    resolveSpy.mockRestore();
+    if (E.isLeft(usedService)) {
+      throw '';
+    }
+
+    expect(usedService.right).toBeInstanceOf(AdditionalService);
+    expect(usedService.right.getInfo()).toBe('AdditionalService');
   });
 });

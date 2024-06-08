@@ -21,12 +21,18 @@ describe('Container', () => {
   let container: Container<AppServices>;
 
   beforeEach(() => {
-    container = new Container<AppServices>();
+    const containerRes = Container.createContainer<AppServices>();
+
+    if (E.isLeft(containerRes)) {
+      throw '';
+    }
+
+    container = containerRes.right;
   });
 
   test('should register and resolve TestService', () => {
     container.register('TestService', new TestService());
-    const service = container.resolve('TestService');
+    const service = container.use('TestService');
 
     if (E.isRight(service)) {
       expect(service.right).toBeInstanceOf(TestService);
@@ -40,7 +46,7 @@ describe('Container', () => {
 
   test('should register and resolve AnotherService', () => {
     container.register('AnotherService', new AnotherService());
-    const service = container.resolve('AnotherService');
+    const service = container.use('AnotherService');
     if (E.isRight(service)) {
       expect(service.right).toBeInstanceOf(AnotherService);
       expect(service.right.getValue()).toBe('Hello, Override!');
@@ -50,7 +56,7 @@ describe('Container', () => {
   });
 
   test('should result in left/failure if the service is not registered', () => {
-    const service = container.resolve('TestService');
+    const service = container.use('TestService');
 
     if (E.isRight(service)) {
       failTheTest();
@@ -64,7 +70,7 @@ describe('Container', () => {
   test('should override an existing service with the same type', () => {
     container.register('TestService', new TestService());
     container.register('TestService', new TestService());
-    const service = container.resolve('TestService');
+    const service = container.use('TestService');
     if (E.isRight(service)) {
       expect(service.right.getValue()).toBe('Hello, Injectofy!');
     } else {
@@ -73,7 +79,7 @@ describe('Container', () => {
   });
 
   test('should result in left/failure if resolving an unregistered service', () => {
-    const service = container.resolve('AnotherService');
+    const service = container.use('AnotherService');
     if (E.isRight(service)) {
       failTheTest();
     } else {
@@ -85,7 +91,7 @@ describe('Container', () => {
 
   test('should infer the type based on the container', () => {
     container.register('TestService', new TestService());
-    const service = container.resolve('TestService');
+    const service = container.use('TestService');
 
     if (E.isRight(service)) {
       const inferredType: TestService = service.right;
@@ -103,7 +109,7 @@ describe('Container', () => {
       }
     }
     container.register('TestService', new DuckTypedClass());
-    const service = container.resolve('TestService');
+    const service = container.use('TestService');
     if (E.isRight(service)) {
       const inferredType: TestService = service.right;
       expect(inferredType).toBeInstanceOf(DuckTypedClass);
@@ -114,7 +120,7 @@ describe('Container', () => {
   });
 
   test('will result in left/failure when trying to register service from non duck types', () => {
-    const container = new Container<AppServices>({
+    const container = Container.createContainer<AppServices>({
       TestService: {
         implementation: new TestService(),
       },
@@ -128,19 +134,27 @@ describe('Container', () => {
         return 'Hello, Diff!';
       }
     }
+
+    if (E.isLeft(container)) {
+      throw '';
+    }
+
     expect(() =>
-      container.register('TestService', new DuckTypedClass())
+      container.right.register('TestService', new DuckTypedClass())
     ).not.toThrow(
       'Type mismatch: TestService is already registered with a different type'
     );
 
-    const registerVal = container.register('TestService', new DuckTypedClass());
+    const registerVal = container.right.register(
+      'TestService',
+      new DuckTypedClass()
+    );
 
     if (E.isLeft(registerVal)) {
       failTheTest();
     }
 
-    const service = container.resolve('TestService');
+    const service = container.right.use('TestService');
 
     if (E.isRight(service)) {
       expect(service.right.getValue()).toEqual('Hello, Diff!');
@@ -160,7 +174,11 @@ describe('Container', () => {
       },
     };
 
-    const container = new Container<Services>(initialServices);
+    const container = Container.createContainer<Services>(initialServices);
+
+    if (E.isLeft(container)) {
+      throw '';
+    }
 
     E.fold(
       (err: Error) => {
@@ -169,7 +187,7 @@ describe('Container', () => {
       (val: () => String) => {
         expect(val()).toEqual('TEST');
       }
-    )(container.resolve('serviceA'));
+    )(container.right.use('serviceA'));
   });
 
   describe('create container', () => {
@@ -216,12 +234,12 @@ describe('Container', () => {
           val.register('serviceA', () => new ServiceA(''));
           val.register('serviceA', () => new ServiceB(42));
           val.register('serviceA', new ServiceA('updated'));
-          expect(
-            E.getOrElseW(() => null)(val.resolve('serviceA'))?.name
-          ).toEqual('updated');
-          expect(
-            E.getOrElseW(() => null)(val.resolve('serviceA'))
-          ).toBeInstanceOf(ServiceA);
+          expect(E.getOrElseW(() => null)(val.use('serviceA'))?.name).toEqual(
+            'updated'
+          );
+          expect(E.getOrElseW(() => null)(val.use('serviceA'))).toBeInstanceOf(
+            ServiceA
+          );
         }
       )(result);
     });

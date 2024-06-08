@@ -21,7 +21,36 @@ class Container<T extends { [key: string]: any }> {
     }
   }
 
-  constructor(initialServices?: {
+  /**
+   * The `use` function constructs or retrieves dependencies.
+   * It returns the instance of the specified service, whether
+   * through `object(Service)` or `new Service`.
+   */
+  public use<K extends keyof T>(
+    identifier: K
+  ): E.Either<Error, T[K] extends ObjectClass<infer U, any> ? U : T[K]> {
+    const service = this.getServiceFromContainer(identifier);
+    if (E.isLeft(service)) {
+      return E.left(service.left);
+    }
+    return E.right(resolver(service.right));
+  }
+
+  // Updates an existing dependency with a new implementation.
+  public register<K extends keyof T>(
+    identifier: K,
+    implementation: T[K]
+  ): E.Either<Error, true> {
+    this.services.set(identifier, implementation);
+    return E.right(true);
+  }
+
+  /**
+   * A constructor cannot return arbitrary types. Therefore,
+   * use `createContainer` to construct it, ensuring
+   * E.Either error handling is maintained.
+   */
+  private constructor(initialServices?: {
     [K in keyof T]?: ServiceEntry<T[K]>;
   }) {
     if (initialServices) {
@@ -41,16 +70,9 @@ class Container<T extends { [key: string]: any }> {
       }
     }
   }
-
-  public register<K extends keyof T>(
-    identifier: K,
-    implementation: T[K]
-  ): E.Either<Error, true> {
-    this.services.set(identifier, implementation);
-    return E.right(true);
-  }
-
-  public resolve<K extends keyof T>(identifier: K): E.Either<Error, T[K]> {
+  private getServiceFromContainer<K extends keyof T>(
+    identifier: K
+  ): E.Either<Error, T[K]> {
     const service: T[K] = this.services.get(identifier) as any;
     if (!service) {
       return E.left(
@@ -58,16 +80,6 @@ class Container<T extends { [key: string]: any }> {
       );
     }
     return E.right(service);
-  }
-
-  public use<K extends keyof T>(
-    identifier: K
-  ): T[K] extends ObjectClass<infer U, any> ? U : T[K] {
-    const service = this.resolve(identifier);
-    if (E.isLeft(service)) {
-      throw service.left;
-    }
-    return resolver(service.right);
   }
 }
 
