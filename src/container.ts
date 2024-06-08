@@ -1,10 +1,11 @@
 import * as E from 'fp-ts/Either';
 import { resolver } from './resolvers';
 import { ObjectClass } from './resolvers/object';
+import { validateServices } from './utils/container.utils';
 
 export type Constructor<T> = new (...args: any[]) => T;
 
-interface ServiceEntry<T> {
+export interface ServiceEntry<T> {
   implementation: T;
 }
 
@@ -15,7 +16,12 @@ class Container<T extends { [key: string]: any }> {
     [K in keyof T]?: ServiceEntry<T[K]>;
   }): E.Either<Error, Container<T>> {
     try {
-      return E.right(new Container<T>(initialServices));
+      const container = new Container<T>(initialServices);
+      const validation = validateServices(container.services);
+      if (E.isLeft(validation)) {
+        return E.left(validation.left);
+      }
+      return E.right(container);
     } catch (error) {
       return E.left(error instanceof Error ? error : new Error(String(error)));
     }

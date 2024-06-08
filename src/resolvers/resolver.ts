@@ -8,11 +8,11 @@ type Resolvers<T = any> = ClassType<T> | FunctionType<T> | ValueType<T>;
 export function isResolver(input: Resolvers): boolean {
   return isClassResolver(input) || isFuncResolver(input);
 }
-function isFuncResolver(input: Resolvers) {
+export function isFuncResolver(input: Resolvers) {
   return input.isUsingFunc !== undefined;
 }
 
-function isClassResolver<T, A extends any[]>(
+export function isClassResolver<T, A extends any[]>(
   input: any
 ): input is ObjectClass<T, A> {
   return (

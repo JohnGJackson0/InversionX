@@ -1,8 +1,9 @@
 export type ObjectClass<T, A extends any[]> = {
   new (...args: A): T;
+  validate(): void;
   isUsingObject(): boolean;
   getArgs(): A;
-  lazyConstruct(...args: A): ObjectClass<T, A>;
+  construct(...args: A): ObjectClass<T, A>;
   createInstance(): T;
   getOriginalClass(): ObjectClass<T, A>;
   getNumberOfRequiredParameters(): number;
@@ -53,25 +54,30 @@ export function object<T extends object, A extends any[]>(
     static getArgs(): A {
       return this.argsKey;
     }
-    static lazyConstruct(...args: A): ObjectClass<T, A> {
+    static construct(...args: A): ObjectClass<T, A> {
       this.argsKey = args;
       return WrappedClass as unknown as ObjectClass<T, A>;
     }
-    static createInstance() {
-      if (!!this.getArgs && this.getArgs()?.length > 0) {
-        if (incorrectConstruction(this as unknown as ObjectClass<T, A>)) {
-          throw Error(
-            'There is a missing required parameter! Either Adjust the required parameters or correct the construction of the class.'
-          );
-        }
-        return new this.originalClass(...this.getArgs());
-      }
+
+    static hasArgs() {
+      return !!this.getArgs && this.getArgs()?.length > 0;
+    }
+
+    static validate() {
       if (incorrectConstruction(this as unknown as ObjectClass<T, A>)) {
         throw Error(
-          'There is a required parameter and it was not constructed! Use the object(class).contruct(...)'
+          this.hasArgs()
+            ? 'There is a missing required parameter! Either Adjust the required parameters or correct the construction of the class.'
+            : 'There is a required parameter and it was not constructed! Use the object(class).contruct(...)'
         );
       }
-      return new (this.originalClass as new () => T)();
+    }
+
+    static createInstance() {
+      this.validate();
+      return this.hasArgs()
+        ? new this.originalClass(...this.getArgs())
+        : new (this.originalClass as new () => T)();
     }
     constructor(...args: A) {
       const instance = new ClassName(...args);

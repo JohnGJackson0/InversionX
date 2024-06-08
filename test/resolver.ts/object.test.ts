@@ -66,7 +66,7 @@ describe('Resolver Object', () => {
         return `some method called ${this.someProperty}`;
       }
     }
-    const classInstance = object(MyClass).lazyConstruct('TEST someProperty');
+    const classInstance = object(MyClass).construct('TEST someProperty');
     const resolved = resolver<MyClass, any>(classInstance);
     expect(resolved.someMethod()).toEqual(
       'some method called TEST someProperty'
@@ -84,10 +84,10 @@ describe('Resolver Object', () => {
       }
     }
     // @ts-expect-error
-    object(MyClass).lazyConstruct();
+    object(MyClass).construct();
     // @ts-expect-error
-    object(MyClass).lazyConstruct(123);
-    const resolved = object(MyClass).lazyConstruct('123');
+    object(MyClass).construct(123);
+    const resolved = object(MyClass).construct('123');
     expect(resolver<MyClass, any>(resolved).someMethod()).toEqual('123');
   });
 
