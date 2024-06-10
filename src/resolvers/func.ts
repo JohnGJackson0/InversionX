@@ -1,4 +1,4 @@
-interface FuncClass<A extends any[], R> {
+export interface FuncClass<A extends any[], R> {
   lazyCall(...args: A): FuncClass<A, R>;
   getArgs(): A;
   isUsingFunc(): boolean;
