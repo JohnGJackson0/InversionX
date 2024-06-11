@@ -21,10 +21,9 @@ describe('Container use function', () => {
 
   beforeEach(() => {
     const initialServices = {
-      testService: { implementation: new TestService(), type: TestService },
+      testService: { implementation: new TestService() },
       anotherService: {
         implementation: new AnotherService(),
-        type: AnotherService,
       },
     };
     const result = Container.createContainer(initialServices);

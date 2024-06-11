@@ -170,7 +170,6 @@ describe('Container', () => {
     const initialServices = {
       serviceA: {
         implementation: () => 'TEST',
-        type: () => String,
       },
     };
 
@@ -217,11 +216,9 @@ describe('Container', () => {
       const initialServices = {
         serviceA: {
           implementation: new ServiceA('test'),
-          type: ServiceA,
         },
         serviceB: {
           implementation: new ServiceB(42),
-          type: ServiceB,
         },
       };
       const result = Container.createContainer<Services>(initialServices);
@@ -248,11 +245,9 @@ describe('Container', () => {
       const initialServices = {
         serviceA: {
           implementation: new ServiceA('test'),
-          type: ServiceA,
         },
         serviceB: {
           implementation: new ServiceB(42),
-          type: ServiceB,
         },
       };
 
