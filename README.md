@@ -31,7 +31,7 @@ interface AppServices {
 }
 ```
 
-Note: For ObjectClass and FuncClass, using use will unpack them into a regular function. It will not invoke or construct them until they are used.
+Note: For ObjectClass and FuncClass, using use will unpack them into a invoked function or class instance. It will not invoke or construct them until they are used.
 
 #### Defining Implementation Details
 
@@ -86,13 +86,13 @@ export const iocContainer = _container();
 
 #### Using dependencies
 
-Now, we can use it directly with ease. Notice that the type is correctly inferred as TestService, even though the container is of type ObjectClass<TestService, [string]>. The type is constructed at runtime.
+Now, we can use it directly with ease. Notice that the type is correctly inferred as TestService, even though the container is of type ObjectClass<TestService, [string]>. The class is constructed at the time of useService since we used object.construct().
 
 ```
 iocContainer.useService('TestService')
 ```
 
-User it per normally. Here is a unit test demonstrating it:
+Use it per normally. Here is a unit test demonstrating it:
 
 ```
 expect(iocContainer.useService('TestService').getValue()).toEqual('TEST');
