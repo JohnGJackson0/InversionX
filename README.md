@@ -1,6 +1,6 @@
 # InversionX
 
-InversionX is a TypeScript library designed to simplify dependency injection in your projects. It allows you to manage your dependencies easily, promoting better code organization and testability.
+InversionX is a TypeScript library that streamlines dependency injection and type handling for your preferred framework. It operates seamlessly without the need for configuration of reflect-metadata or decorators.
 
 ## Installation
 
