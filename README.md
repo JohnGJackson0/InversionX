@@ -7,13 +7,13 @@ InversionX is a TypeScript library designed to simplify dependency injection in 
 You can install InversionX using Yarn:
 
 ```bash
-yarn add InversionX
+yarn add inversionx
 ```
 
 Or using npm:
 
 ```bash
-npm install InversionX
+npm install inversionx
 ```
 
 ## Usage
