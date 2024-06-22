@@ -59,8 +59,9 @@ export function object<T extends object, A extends any[]>(
       return WrappedClass as unknown as ObjectClass<T, A>;
     }
 
-    static hasArgs() {
-      return !!this.getArgs && this.getArgs()?.length > 0;
+    static hasArgs(): boolean {
+      // Check if getArgs is defined and if it returns a non-empty array
+      return typeof this.getArgs === 'function' && this.getArgs()?.length > 0;
     }
 
     static validate() {
