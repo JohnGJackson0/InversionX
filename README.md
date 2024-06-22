@@ -20,34 +20,84 @@ npm install injectofy
 
 ### Setting Up the Container
 
-First, set up the container in your project. This is where you'll register your dependencies.
+In a high-level part of the application with no external dependencies, you would create a specification that defines the application's dependencies. For example:
 
 ```
-import { Container } from 'injectofy';
-
-const container = new Container();
+interface AppServices {
+  TestService: ObjectClass<TestService, [string]>;
+  TestService2: TestService;
+  TestService3: () => string;
+  TestService4: FuncClass<[a: number, b: number], number>;
+}
 ```
 
-### Registering Dependencies
+Note: For ObjectClass and FuncClass, using use will unpack them into a regular function. It will not invoke or construct them until they are used.
 
-You can register dependencies using the register method. You need to provide an identifier, the instance, and the class type.
+#### Defining Implementation Details
 
-#### Example Services
+The purpose of the dependency injection library is to serve as a central repository for implementations. In the example above, you define interfaces, which are less likely to change. The application relies on these interfaces rather than specific implementations, allowing you to change the implementations without affecting the application. This part focuses on how you will fulfill the interface definitions. For Example:
 
 ```
-export class TestService {
-  public getValue(): string {
-    return 'Hello, Injectofy!';
+const initialServices = {
+  TestService: {
+    // lazy class construction
+    implementation: object(TestService).construct('TEST'),
+  },
+  TestService2: {
+    implementation: new TestService('TEST 2'),
+  },
+  TestService3: {
+    implementation: () => {
+      return 'TEST 3';
+    },
+  },
+  TestService4: {
+    // lazy function construction
+    implementation: func((a: number, b: number) => a + b, [1, 1]),
+  },
+};
+```
+
+#### Container Creation
+
+Here’s an example demonstrating how to construct such a container. The library uses fp-ts, which ensures that errors are communicated through the TypeScript type system at all entry points. You can then unpack these errors with Fold. We use a closure to handle failures at a high level, allowing us to work with a simplified definition later on. Another reason for using closures is to define a strict scope for which the container can be changed.
+
+```
+function _container() {
+  const iocContainer = Container.createContainer<AppServices>(initialServices);
+  if (E.isLeft(iocContainer)) {
+    // handle errors at highest level, rethrow, or E.left, your choice...
+    throw new Error(iocContainer.left.message);
   }
+  const container = iocContainer.right;
+  function useService<T extends keyof AppServices>(num: T) {
+    const service = container.use(num);
+    if (E.isLeft(service)) {
+      // handle errors at highest level, rethrow, or E.left, your choice...
+      throw new Error(service.left.message);
+    }
+    return service.right;
+  }
+  return { useService };
 }
 
-container.register('TestService', new TestService(), TestService);
+export const iocContainer = _container();
 ```
 
-#### Resolving Dependencies
+#### Using dependencies
 
-You can resolve dependencies using the resolve method. NOTICE! : Service is of the type of the resolver automatically.
+Now, we can use it directly with ease. Notice that the type is correctly inferred as TestService, even though the container is of type ObjectClass<TestService, [string]>. The type is constructed at runtime.
 
 ```
-const service = container.resolve('TestService');
+iocContainer.useService('TestService')
 ```
+
+User it per normally. Here is a unit test demonstrating it:
+
+```
+expect(iocContainer.useService('TestService').getValue()).toEqual('TEST');
+```
+
+#### Futher
+
+Make sure to follow the unit tests and example folder for more information.
