@@ -1,19 +1,19 @@
-# Injectofy
+# InversionX
 
-Injectofy is a TypeScript library designed to simplify dependency injection in your projects. It allows you to manage your dependencies easily, promoting better code organization and testability.
+InversionX is a TypeScript library designed to simplify dependency injection in your projects. It allows you to manage your dependencies easily, promoting better code organization and testability.
 
 ## Installation
 
-You can install Injectofy using Yarn:
+You can install InversionX using Yarn:
 
 ```bash
-yarn add injectofy
+yarn add InversionX
 ```
 
 Or using npm:
 
 ```bash
-npm install injectofy
+npm install InversionX
 ```
 
 ## Usage
