@@ -3,7 +3,7 @@ import { Container } from '../../src/container';
 
 export class TestService {
   public getValue(): string {
-    return 'Hello, Injectofy!';
+    return 'Hello, InversionX!';
   }
 }
 
@@ -36,7 +36,7 @@ describe('Container', () => {
 
     if (E.isRight(service)) {
       expect(service.right).toBeInstanceOf(TestService);
-      expect(service.right.getValue()).toBe('Hello, Injectofy!');
+      expect(service.right.getValue()).toBe('Hello, InversionX!');
     } else {
       failTheTest();
     }
@@ -72,7 +72,7 @@ describe('Container', () => {
     container.register('TestService', new TestService());
     const service = container.use('TestService');
     if (E.isRight(service)) {
-      expect(service.right.getValue()).toBe('Hello, Injectofy!');
+      expect(service.right.getValue()).toBe('Hello, InversionX!');
     } else {
       failTheTest();
     }
@@ -96,7 +96,7 @@ describe('Container', () => {
     if (E.isRight(service)) {
       const inferredType: TestService = service.right;
       expect(inferredType).toBeInstanceOf(TestService);
-      expect(inferredType.getValue()).toBe('Hello, Injectofy!');
+      expect(inferredType.getValue()).toBe('Hello, InversionX!');
     } else {
       failTheTest();
     }

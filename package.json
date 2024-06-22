@@ -29,16 +29,16 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "injectofy",
+  "name": "inversionx",
   "author": "John Jackson",
-  "module": "dist/injectofy.esm.js",
+  "module": "dist/inversionx.esm.js",
   "size-limit": [
     {
-      "path": "dist/injectofy.cjs.production.min.js",
+      "path": "dist/inversionx.cjs.production.min.js",
       "limit": "10 KB"
     },
     {
-      "path": "dist/injectofy.esm.js",
+      "path": "dist/inversionx.esm.js",
       "limit": "10 KB"
     }
   ],

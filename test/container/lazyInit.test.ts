@@ -12,7 +12,7 @@ describe('Container - Lazy Init', () => {
           throw 'constructing now....';
         }
         public getValue(): string {
-          return 'Hello, Injectofy!';
+          return 'Hello, InversionX!';
         }
       }
       interface AppServices {
@@ -34,7 +34,7 @@ describe('Container - Lazy Init', () => {
           throw new Error('constructing now....');
         }
         public getValue(): string {
-          return 'Hello, Injectofy!';
+          return 'Hello, InversionX!';
         }
       }
       interface AppServices {
@@ -68,7 +68,7 @@ describe('Container - Lazy Init', () => {
     test('use function will unpack objectClass functions', () => {
       class TestService {
         public getValue(): string {
-          return 'Hello, Injectofy!';
+          return 'Hello, InversionX!';
         }
       }
       interface AppServices {
@@ -88,7 +88,9 @@ describe('Container - Lazy Init', () => {
           try {
             const testService = val.use('TestService');
             if (E.isRight(testService)) {
-              expect(testService.right.getValue()).toEqual('Hello, Injectofy!');
+              expect(testService.right.getValue()).toEqual(
+                'Hello, InversionX!'
+              );
             } else {
               throw 'Fail the test';
             }
@@ -102,7 +104,7 @@ describe('Container - Lazy Init', () => {
     test('use object wrapper types work', () => {
       class TestService {
         public getValue(): string {
-          return 'Hello, Injectofy!';
+          return 'Hello, InversionX!';
         }
       }
       interface AppServices {
