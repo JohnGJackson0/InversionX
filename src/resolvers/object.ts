@@ -42,9 +42,9 @@ export function object<T extends object, A extends any[]>(
     static numOfRequiredParams =
       generateSchema(ClassName).requiredParams.length;
     static argsKey: A;
-    static getNumberOfRequiredParameters = () => {
+    static getNumberOfRequiredParameters() {
       return this.numOfRequiredParams ?? 0;
-    };
+    }
     static getOriginalClass(): new (...args: A) => T | (new () => T) {
       return this.originalClass;
     }
